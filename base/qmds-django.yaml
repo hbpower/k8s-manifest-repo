@@ -1,0 +1,78 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eks-qmds-django
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eks-django-backend
+  template:
+    metadata:
+      labels:
+        app: eks-django-backend
+    spec:
+      #affinity:
+      #  nodeAffinity:
+      #    preferredDuringSchedulingIgnoredDuringExecution:
+      #    - weight: 1
+      #      preference:
+      #        matchExpressions:
+      #        - key: lifecycle
+      #          operator: In
+      #          values:
+      #          - Ec2Spot
+      #tolerations:
+      #- key: "spotInstance"
+      #  operator: "Equal"
+      #  value: "true"
+      #  effect: "PreferNoSchedule"
+      containers:
+        - name: dev-qmds-django
+          image: 545563948185.dkr.ecr.ap-northeast-2.amazonaws.com/dev_qmds_django:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - name: persistent-storage
+              mountPath: /app/media/
+          resources:
+            requests:
+              cpu: 250m
+            limits:
+              cpu: 500m
+      #securityContext:
+      #  runAsUser: 1000
+      #  runAsGroup: 3000
+      #  fsGroup: 2000
+      #initContainers:
+      #- name: change-ownership-container
+      #  image: busybox
+      #  command: ["/bin/chown","-R","1000:1000", "/app/media"]
+      #  securityContext:
+      #    runAsUser: 0
+      #    privileged: true
+      #  volumeMounts:
+      #  - name: persistent-storage
+      #    mountPath: /app/media/
+      volumes:
+      - name: persistent-storage
+        persistentVolumeClaim:
+          claimName: efs-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eks-qmds-django
+  annotations:
+    alb.ingress.kubernetes.io/healthcheck-path: "/healthcheck"
+spec:
+  selector:
+    app: eks-django-backend
+  #type: NodePort
+  ports:
+    - port: 8000 # 서비스가 생성할 포트  
+      targetPort: 8000 # 서비스가 접근할 pod의 포트
+      protocol: TCP

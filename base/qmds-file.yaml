@@ -1,0 +1,50 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eks-qmds-file
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eks-file-server
+  template:
+    metadata:
+      labels:
+        app: eks-file-server
+    spec:
+      containers:
+        - name: dev-qmds-file
+          image: 545563948185.dkr.ecr.ap-northeast-2.amazonaws.com/dev_qmds_file_for_eks:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: persistent-storage
+              mountPath: /app/media/
+          resources:
+            requests:
+              cpu: 250m
+            limits:
+              cpu: 500m
+      volumes:
+      - name: persistent-storage
+        persistentVolumeClaim:
+          claimName: efs-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eks-qmds-file
+  annotations:
+    alb.ingress.kubernetes.io/healthcheck-path: "/healthcheck"
+spec:
+  selector:
+    app: eks-file-server
+  #type: NodePort
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8000 # 서비스가 생성할 포트  
+      targetPort: 80 # 서비스가 접근할 pod의 포트

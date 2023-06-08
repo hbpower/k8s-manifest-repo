@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+images:
+- name: 545563948185.dkr.ecr.ap-northeast-2.amazonaws.com/dev_qmds_django
+  newName: 545563948185.dkr.ecr.ap-northeast-2.amazonaws.com/dev_qmds_django
+  newTag: abcdefg
+resources:
+- ../../base
+patchesStrategicMerge:
+- django-patch.yaml
+

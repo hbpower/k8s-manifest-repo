@@ -1,0 +1,47 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eks-qmds-celery
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eks-django-celery
+  template:
+    metadata:
+      labels:
+        app: eks-django-celery
+    spec:
+      containers:
+        - name: dev-qmds-celery
+          image: 545563948185.dkr.ecr.ap-northeast-2.amazonaws.com/dev_qmds_celery:latest
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: persistent-storage
+              mountPath: /app/media
+          resources:
+            requests:
+              cpu: 250m
+            limits:
+              cpu: 500m
+      volumes:
+      - name: persistent-storage
+        persistentVolumeClaim:
+          claimName: efs-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eks-qmds-celery
+  annotations:
+    alb.ingress.kubernetes.io/healthcheck-path: "/healthcheck"
+spec:
+  selector:
+    app: eks-django-celery
+  #type: NodePort
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP

@@ -1,0 +1,28 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eks-qmds-django
+  namespace: default
+  labels:
+    env: dev
+spec:
+  selector:
+    matchLabels:
+      app: eks-django-backend
+  template:
+    metadata:
+      labels:
+        app: eks-django-backend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eks-qmds-django
+  annotations:
+    alb.ingress.kubernetes.io/healthcheck-path: "/healthcheck"
+  labels:
+    env: dev
+spec:
+  selector:
+    app: eks-django-backend

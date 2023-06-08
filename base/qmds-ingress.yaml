@@ -1,0 +1,31 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: "qmds-https-ingress"
+    namespace: default
+    annotations:
+      kubernetes.io/ingress.class: alb
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/group.name: eks-qmds-group
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:545563948185:certificate/d62de58f-ead1-438a-9b99-5146548dbd64
+spec:
+    rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: "eks-qmds-django"
+                port:
+                  number: 8000
+          - path: /api/file-post/
+            pathType: Exact
+            backend:
+              service:
+                name: "eks-qmds-file"
+                port:
+                  number: 8000
